@@ -87,6 +87,16 @@ create table schedule_job_log
 
  2. 自行通过idea启动
 
+ ```
+    访问
+    
+    http://127.0.0.1:8080/
+ ```
+![img.png](w-easy-food-stage/src/main/resources/static/images/img2.png)
+
+启动后默认 账户 easyfood 密码 11270809 可自行从 application.yml 进行更改 （spring.security.user 节点）
+![img.png](w-easy-food-stage/src/main/resources/static/images/img.png)****
+
 ### 依赖中间件
 
 		1. redis（用于缓存，默认开启建议使用，能减少访问频率增加抢菜成功率 没有的话可以从阿某云弄个按时的）
