@@ -109,7 +109,7 @@ create table schedule_job_log
 		3. maven（用于包管理，未安装请自行度娘安装）
 ### 配置说明
 
-在 application-prod.yml 中 **wjj.worker.easyfood** 节点对应者程序运行的关键配置熟悉
+在 application-prod.yml 中 **wjj.worker.easyfood** 节点对应者程序运行的关键配置字段
 
 | 属性           | 说明                                                                                      |
 | -------------- |-----------------------------------------------------------------------------------------|
