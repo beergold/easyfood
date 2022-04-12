@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.wjj.worker.persistence.dao.WJobDao">
+
+    <select id="queryJobList" parameterType="com.wjj.worker.framework.request.WjjApiParameter"
+            resultType="com.wjj.worker.persistence.dto.QuartzInfoDto">
+        SELECT
+            SJL_TASK_NAME jobName,
+            SJL_ID no,
+            SJL_TASK_GROUP jobGroup,
+            SJL_CLASS_PATH jobClassName,
+            SJL_ENABLE triggerState,
+            SJL_TRIGGER_NAME triggerName,
+            SJL_TRIGGER_GROUP triggerGroup,
+            SJL_EXPRESS cronExpression
+        FROM schedule_job_list
+        <where>
+            <if test="wjjParams.status!=null">AND SJL_ENABLE=#{wjjParams.status}</if>
+            <if test="wjjParams.triggerName!=null and wjjParams.triggerName!=''">
+                AND SJL_TRIGGER_NAME=#{wjjParams.triggerName}
+            </if>
+            <if test="wjjParams.triggerGroup!=null and wjjParams.triggerGroup!=''">
+                AND SJL_TRIGGER_GROUP=#{wjjParams.triggerGroup}
+            </if>
+        </where>
+        order by SJL_ENABLE desc,SJL_CREATE_TIME desc
+    </select>
+
+    <insert id="addJobLog" parameterType="com.wjj.worker.framework.request.WjjApiParameter">
+        insert into schedule_job_log(SJL_TRIGGER_NAME, SJL_TRIGGER_GROUP, SJL_JOB_NAME, SJL_JOB_GROUP, SJL_EXECUTE_TIME,
+                                     SJL_EXECUTE_RESULT,
+                                     SJL_EXECUTE_STATUS)
+        VALUES (#{triggerName},
+                #{triggerGroup},
+                #{jobName},
+                #{jobGroup},
+                now(),
+                #{result},
+                #{success})
+    </insert>
+
+    <insert id="addJob" parameterType="com.wjj.worker.persistence.dto.QuartzDto">
+        INSERT INTO
+        schedule_job_list(SJL_TASK_NAME,SJL_TASK_GROUP,SJL_CLASS_PATH,SJL_TRIGGER_NAME,SJL_TRIGGER_GROUP,SJL_ENABLE,SJL_EXPRESS,SJL_CREATE_TIME)
+        select #{jobName},#{jobGroup},#{jobClassName},#{triggerName},#{triggerGroup},1,#{cronExpression},now()
+        FROM dual
+        <where>
+            not exists (select 1 from schedule_job_list where SJL_TASK_NAME=#{jobName} and SJL_TASK_GROUP=#{jobGroup})
+        </where>
+    </insert>
+
+    <update id="updateJob" parameterType="com.wjj.worker.persistence.dto.QuartzDto">
+        UPDATE schedule_job_list ${jobName}
+        <set>
+            <if test="cronExpression!=null and cronExpression!=''">
+                SJL_EXPRESS=#{cronExpression},
+            </if>
+            <if test="triggerState!=null">
+                SJL_ENABLE=#{triggerState},
+            </if>
+        </set>
+        where SJL_TASK_NAME=#{jobName} and SJL_TASK_GROUP=#{jobGroup}
+    </update>
+
+</mapper>

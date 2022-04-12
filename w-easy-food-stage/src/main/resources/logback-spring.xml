@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty scope="context" name="AppName" source="spring.application.name"/>
+    <springProperty scope="context" name="ProfilesActive" source="spring.profiles.active"/>
+
+    <property name="LogPattern"
+              value="|- %-8(%d{HH:mm:ss}) -|- %36.36class{36} [%3.3line] -|- %-5level -|- %msg%n"/>
+
+    <property name="loggerPath"
+              value="wjj-worker-book-logs"/>
+
+    <appender name="stdoutAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LogPattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="outAppender"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${loggerPath}/${AppName}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 按天回滚 daily -->
+            <!-- log.path 在application-[dev|pro].properties里配置 -->
+            <fileNamePattern>logs/${AppName}-${ProfilesActive}-%d{yyyyMMdd}-%i.log.gz</fileNamePattern>
+            <!-- 日志最大的历史 180天 -->
+            <maxHistory>180</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LogPattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${loggerPath}/${AppName}.err.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 按天回滚 daily -->
+            <!-- log.dir 在maven profile里配置 -->
+            <fileNamePattern>logs/${AppName}--${ProfilesActive}-%d{yyyyMMdd}-%i.err.log.gz</fileNamePattern>
+            <!-- 日志最大的历史 60天 -->
+            <maxHistory>180</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LogPattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter"><!-- 只打印错误日志 -->
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <springProfile name="local,dev,stg,test,prod,pd">
+        <logger name="com.wjj.worker.persistence.dao" level="DEBUG"/>
+        <root level="info">
+            <appender-ref ref="stdoutAppender"/>
+            <appender-ref ref="outAppender"/>
+            <appender-ref ref="errorAppender"/>
+        </root>
+    </springProfile>
+
+</configuration>

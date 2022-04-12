@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>total JobManagement</title>
+    <!--    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.0.5/lib/theme-chalk/index.css">-->
+    <link rel="stylesheet" href="./css/index.css">
+    <script src="./js/axios.min.js"></script>
+    <!--    <script src="https://unpkg.com/vue/dist/vue.js"></script>-->
+    <script src="./js/vue.js"></script>
+    <!--    <script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>-->
+    <script src="./js/vue-resource.min.js"></script>
+    <!--    <script src="https://unpkg.com/element-ui@2.0.5/lib/index.js"></script>-->
+    <script src="./js/index.js"></script>
+    <style>
+        #top {
+            background: #20A0FF;
+            padding: 10px;
+            overflow: hidden
+        }
+    </style>
+</head>
+<body>
+<div id="quartz">
+    <div id="top">
+        <el-button type="text" @click="search" style="color:white">查询</el-button>
+        <el-button type="text" @click="handleadd" style="color:white">添加</el-button>
+        <span/>
+    </div>
+    <br/>
+    <div style="margin-top:15px">
+        <el-table ref="quartzTable" v-loading="loading" :data="tableData" style="width:100%" border>
+            <el-table-column prop="no" label="ID" sortable>
+            </el-table-column>
+            <el-table-column prop="jobName" label="任务名称" sortable>
+            </el-table-column>
+            <el-table-column prop="jobGroup" label="任务分组" sortable>
+            </el-table-column>
+            <el-table-column prop="jobClassName" label="执行class全路径" sortable>
+            </el-table-column>
+            <el-table-column prop="triggerState" :formatter="formatStatus" label="是否启用" sortable>
+            </el-table-column>
+            <el-table-column prop="cronExpression" label="表达式" sortable>
+            </el-table-column>
+            <el-table-column prop="nextTime" label="下次执行时间" sortable>
+            </el-table-column>
+            <el-table-column prop="triggerExecState" label="运行状态" sortable>
+                <template scope="scope">
+                    <el-tag :type="getTag(scope.row.triggerExecState)">{{getTagValue(scope.row.triggerExecState)}}
+                    </el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column label="操作" width="375">
+                <template scope="scope">
+                    <el-button size="small" v-if="parseInt(scope.row.triggerState)==1" type="danger"
+                               @click="handlePause(scope.$index, scope.row)">暂停
+                    </el-button>
+                    <el-button size="small" v-if="parseInt(scope.row.triggerState)==0" type="info"
+                               @click="handleResume(scope.$index, scope.row)">恢复
+                    </el-button>
+                    <el-button size="small" type="success" @click="handleUpdate(scope.$index, scope.row)">修改
+                    </el-button>
+                    <el-button size="small" type="primary" @click="handleTrigger(scope.$index, scope.row)">触发
+                    </el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <div align="center">
+            <el-pagination @size-change="handleSizeChange" :hide-on-single-page="true"
+                           @current-change="handleCurrentChange"
+                           :current-page="currentPage" :page-sizes="[10, 20, 30, 40]" :page-size="pagesize"
+                           layout="total, sizes, prev, pager, next, jumper" :total="totalCount">
+            </el-pagination>
+        </div>
+    </div>
+    <el-dialog title="添加任务" :visible.sync="dialogFormVisible">
+        <el-form :model="form">
+            <el-form-item label="数据组" label-width="120px" style="width:90%">
+                <el-select v-model="form.platform" placeholder="请选择">
+                    <el-option v-for="item in options" :key="item.value" :label="item.label"
+                               :value="item.value"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="任务名称" label-width="120px" style="width:90%">
+                <el-input v-model="form.jobName" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="任务分组" label-width="120px" style="width:90%">
+                <el-input v-model="form.jobGroup" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="任务Class名称" label-width="120px" style="width:90%">
+                <el-input v-model="form.jobClassName" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="表达式" label-width="120px" style="width:90%">
+                <el-input v-model="form.cronExpression" auto-complete="off"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="add">确 定</el-button>
+        </div>
+    </el-dialog>
+    <el-dialog title="修改任务" :visible.sync="updateFormVisible">
+        <el-form :model="updateform">
+            <el-form-item label="表达式" label-width="120px" style="width:90%">
+                <el-input v-model="updateform.cronExpression" auto-complete="off"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="updateFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="update">确 定</el-button>
+        </div>
+    </el-dialog>
+</div>
+<footer align="center">
+    <p>&copy; total 任务管理</p>
+</footer>
+<script>
+
+    var vue = new Vue({
+        el: "#quartz",
+        data: {
+            //表格当前页数据
+            tableData: [],
+            //请求的URL
+            url: '/job/',
+            //默认每页数据量
+            pagesize: 10,
+            //当前页码
+            currentPage: 1,
+            //查询的页码
+            start: 1,
+            //默认数据总数
+            totalCount: 0,
+            //添加对话框默认可见性
+            dialogFormVisible: false,
+            //修改对话框默认可见性
+            updateFormVisible: false,
+            //加载中
+            loading: true,
+            //提交的表单
+            form: {
+                platform: 'easyFood',
+                jobName: '',
+                jobGroup: '',
+                triggerName: '',
+                triggerGroup: '',
+                cronExpression: '',
+                jobClassName: ''
+            },
+            updateform: {
+                platform: '',
+                jobName: '',
+                jobGroup: '',
+                triggerName: '',
+                triggerGroup: '',
+                cronExpression: '',
+                jobClassName: ''
+            },
+            options: [{
+                value: 'ssm',
+                label: 'ssm'
+            }],
+            value: 'UNKNOWN'
+        },
+        computed: {},
+        mounted() {
+            this.addInterceptors();
+            this.loadData(this.currentPage, this.pagesize);
+        },
+        methods: {
+            //从服务器读取数据
+            loadData: function (pageNum, pageSize) {
+                let that = this;
+                axios.post(that.url + "query", {
+                    "current": pageNum,
+                    "pageSize": pageSize,
+                    "paging": "paging"
+                }).then(function (res) {
+                    that.tableData = res.records;
+                    that.totalCount = res.total;
+                    that.loading = false;
+                }, function () {
+                    alert('failed');
+                    that.loading = false;
+                });
+            },
+            //暂停任务
+            handlePause: function (index, row) {
+                let that = this;
+                axios.post(this.url + 'pause', {
+                    "platform": row.platform,
+                    "jobName": row.jobName,
+                    "jobGroup": row.jobGroup,
+                    "triggerName": row.triggerName,
+                    "triggerGroup": row.triggerGroup
+                }, {emulateJSON: true}).then(function (res) {
+                    if (res) {
+                        that.$message.success("操作成功!");
+                        that.loadData(that.currentPage, that.pagesize);
+                    }
+                }, function () {
+                    alert('failed');
+                });
+            },
+            //恢复任务
+            handleResume: function (index, row) {
+                let that = this;
+                axios.post(this.url + 'resume', {
+                    "platform": row.platform,
+                    "jobName": row.jobName,
+                    "jobGroup": row.jobGroup,
+                    "triggerName": row.triggerName,
+                    "triggerGroup": row.triggerGroup
+                }, {emulateJSON: true}).then(function (res) {
+                    if (res) {
+                        that.$message.success("操作成功!");
+                        that.loadData(that.currentPage, that.pagesize);
+                    }
+                }, function () {
+                    alert('failed');
+                });
+            },
+            //触发任务
+            handleTrigger: function (index, row) {
+                let that = this;
+                axios.post(this.url + 'trigger', {
+                    "platform": row.platform,
+                    "jobName": row.jobName,
+                    "jobGroup": row.jobGroup,
+                    "triggerName": row.triggerName,
+                    "triggerGroup": row.triggerGroup
+                }, {emulateJSON: true}).then(function (res) {
+                    if (res) {
+                        that.$message.success("操作成功!");
+                        that.loadData(that.currentPage, that.pagesize);
+                    }
+                }, function () {
+                    alert('failed');
+                });
+            },
+            //搜索
+            search: function () {
+                this.loadData(this.currentPage, this.pagesize);
+            },
+            //弹出对话框
+            handleadd: function () {
+                this.dialogFormVisible = true;
+            },
+            //添加
+            add: function () {
+                let that = this;
+                axios.post(this.url + 'add', {
+                    "platform": this.form.platform,
+                    "jobName": this.form.jobName,
+                    "triggerName": this.form.triggerName,
+                    "jobClassName": this.form.jobClassName,
+                    "jobGroup": this.form.jobGroup,
+                    "triggerGroup": this.form.triggerGroup,
+                    "cronExpression": this.form.cronExpression
+                }, {emulateJSON: true}).then(function (res) {
+                    if (res) {
+                        that.$message.success("操作成功!");
+                        that.loadData(that.currentPage, that.pagesize);
+                        that.dialogFormVisible = false;
+                    }
+                }, function () {
+                    alert('failed');
+                });
+            },
+            //更新
+            handleUpdate: function (index, row) {
+                // console.log(row)
+                this.updateFormVisible = true;
+                this.updateform.jobName = row.jobName;
+                this.updateform.jobGroup = row.jobGroup;
+                this.updateform.triggerName = row.triggerName;
+                this.updateform.triggerGroup = row.triggerGroup;
+                this.updateform.platform = row.platform;
+            },
+            //更新任务
+            update: function () {
+                let that = this;
+                axios.post(this.url + 'update', {
+                        "platform": this.updateform.platform,
+                        "jobName": this.updateform.jobName,
+                        "jobGroup": this.updateform.jobGroup,
+                        "triggerName": this.updateform.triggerName,
+                        "triggerGroup": this.updateform.triggerGroup,
+                        "cronExpression": this.updateform.cronExpression
+                    }, {emulateJSON: true}
+                ).then(function (res) {
+                    if (res) {
+                        that.$message.success("操作成功!");
+                        that.loadData(this.currentPage, this.pagesize);
+                        that.updateFormVisible = false;
+                    }
+                }, function () {
+                    alert('failed');
+                });
+            },
+            //每页显示数据量变更
+            handleSizeChange: function (val) {
+                this.pagesize = val;
+                this.loadData(this.currentPage, this.pagesize);
+            },
+            //页码变更
+            handleCurrentChange: function (val) {
+                this.currentPage = val;
+                this.loadData(this.currentPage, this.pagesize);
+            },
+            changePlatform(event) {
+                this.form.platform = event.target.value;
+            },
+            addInterceptors() {
+                let that = this;
+                axios.interceptors.response.use(function (response) {
+                    let result = response.data;
+                    if (!result.success) {
+                        that.$message.error(result.message ? result.message : "系统发送错误");
+                    }
+                    return result.data;
+                }, function (error) {
+                    return Promise.reject(error);
+                });
+            },
+            formatStatus(row, column) {
+                return parseInt(row.triggerState) === 1 ? "是" : "否";
+            },
+            getTag(e) {
+                if (e === "NORMAL" || e === "COMPLETE") {
+                    return "success";
+                } else if (e === "PAUSED") {
+                    return "info";
+                } else if (e === "ERROR") {
+                    return "danger";
+                } else if (e === "BLOCKED") {
+                    return "warning";
+                }
+                return "";
+            },
+            getTagValue(e) {
+                if (e === "NORMAL" || e === "COMPLETE") {
+                    return "正常";
+                } else if (e === "PAUSED") {
+                    return "暂停";
+                } else if (e === "ERROR") {
+                    return "错误";
+                } else if (e === "BLOCKED") {
+                    return "执行中/拥堵";
+                }
+                return "未运行";
+            }
+        },
+    });
+</script>
+</body>
+</html>

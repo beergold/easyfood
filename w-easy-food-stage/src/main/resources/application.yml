@@ -1,0 +1,15 @@
+spring:
+  profiles:
+    active: prod
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: w-easy-food
+  security:
+    user:
+      name: easyfood
+      password: 11270809
+mybatis-plus:
+  mapper-locations:
+    - classpath*:/sql/*.xml
+  type-aliases-package: com.wjj.worker.persistence.dto
