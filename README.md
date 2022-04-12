@@ -24,9 +24,44 @@
 
    * 容错相对较高（根据返回结果对应删除缓存及相对调整策略）
 
-			* 自定义选择地址关键词
+   * 自定义选择地址关键词
 
 > ## 快速开始			
+
+### 创建主表
+```
+create table schedule_job_list
+(
+    SJL_ID            int auto_increment
+        primary key,
+    SJL_TASK_NAME     varchar(100)         null comment '任务名称',
+    SJL_TASK_GROUP    varchar(20)          null comment '任务分组',
+    SJL_CLASS_PATH    varchar(255)         null comment '执行class全路径',
+    SJL_TRIGGER_NAME  varchar(50)          null comment '触发器名称',
+    SJL_TRIGGER_GROUP varchar(50)          null comment '触发器分组',
+    SJL_ENABLE        tinyint(1) default 1 not null comment '是否启用：0-否 1-是',
+    SJL_EXPRESS       varchar(255)         null comment '表达式',
+    SJL_REMARK        varchar(255)         null comment '备注',
+    SJL_CREATE_TIME   datetime             null
+)
+```
+### 日志服务及分布式任务（选择性创建）
+**默认状态下未开启日志及分布式任务，如需请在 task job主入口 中增加注解 @WjjSyncJob**
+```
+create table schedule_job_log
+(
+    SJL_ID             int auto_increment
+        primary key,
+    SJL_TRIGGER_NAME   varchar(50) null comment '触发器名称',
+    SJL_TRIGGER_GROUP  varchar(50) null comment '触发器分组',
+    SJL_JOB_NAME       varchar(50) null comment 'job名称',
+    SJL_JOB_GROUP      varchar(50) null comment 'job分组
+',
+    SJL_EXECUTE_STATUS tinyint(1)  null comment '执行结果：0-失败 1-成功',
+    SJL_EXECUTE_RESULT text        null comment '执行结果日志',
+    SJL_EXECUTE_TIME   datetime    null comment '执行时间'
+)
+```
 
 ​		安装 jdk1.8 && maven 自行百度配置相对简单
 

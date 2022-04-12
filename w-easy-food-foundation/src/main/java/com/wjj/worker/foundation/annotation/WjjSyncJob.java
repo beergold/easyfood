@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface PandoraSyncJob {
+public @interface WjjSyncJob {
 
     /**
      * 通过此key加分布式锁，模拟zookeeper 同时只有一台机器可调度此key的job

@@ -34,7 +34,7 @@ public class PandoraSyncJobAspect {
 
     Logger logger = LoggerFactory.getLogger(PandoraSyncJobAspect.class);
 
-    @Pointcut(value = "@annotation(com.wjj.worker.foundation.annotation.PandoraSyncJob)")
+    @Pointcut(value = "@annotation(com.wjj.worker.foundation.annotation.WjjSyncJob)")
     public void access() {
 
     }
@@ -42,14 +42,14 @@ public class PandoraSyncJobAspect {
 
     @Around(value = "access()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
-        PandoraSyncJob pandoraSyncJob = AspectUtil.getMethodAnnotation(joinPoint, PandoraSyncJob.class);
-        String key = pandoraSyncJob.key();
-        logger.info("total job 开始执行,执行job key:{}@,执行时间:{}", key, DateUtil.formatDateTime(new Date()));
-        Boolean flag = cacheUtils.lock(JobConstant.REDIS_LOCK_KEY + key, "1", pandoraSyncJob.lockMaxTime());
-        logger.info("total job 尝试加锁，job key:{}，加锁结果:{}@@", key, flag);
+        WjjSyncJob wjjSyncJob = AspectUtil.getMethodAnnotation(joinPoint, WjjSyncJob.class);
+        String key = wjjSyncJob.key();
+        logger.info("easyfood job 开始执行,执行job key:{}@,执行时间:{}", key, DateUtil.formatDateTime(new Date()));
+        Boolean flag = cacheUtils.lock(JobConstant.REDIS_LOCK_KEY + key, "1", wjjSyncJob.lockMaxTime());
+        logger.info("easyfood job 尝试加锁，job key:{}，加锁结果:{}@@", key, flag);
         //加锁失败
         if (!flag) {
-            logger.info("total job 加锁失败,不执行业务方法,job key:{}", key);
+            logger.info("easyfood job 加锁失败,不执行业务方法,job key:{}", key);
             return null;
         }
         Object[] args = AspectUtil.getMethodArgs(joinPoint);
@@ -61,7 +61,7 @@ public class PandoraSyncJobAspect {
         }
         JobExecutionContext jobExecutionContext = (JobExecutionContext) args[0];
         Object o = jobExecutionContext.getResult();
-        logger.info("total job 执行完成，jobKey:{}@,执行结果:{}", key, o);
+        logger.info("easyfood job 执行完成，jobKey:{}@,执行结果:{}", key, o);
         //执行失败
         if (!(o instanceof Map) || ObjectUtil.isEmpty(o)) {
             jobUtil.addJobLog(Boolean.FALSE, o, jobExecutionContext);
@@ -83,8 +83,8 @@ public class PandoraSyncJobAspect {
 
     @AfterThrowing(value = "access()", throwing = "ex")
     public void afterThrowing(JoinPoint joinPoint, Throwable ex) {
-        PandoraSyncJob pandoraSyncJob = AspectUtil.getMethodAnnotation(joinPoint, PandoraSyncJob.class);
-        String key = pandoraSyncJob.key();
+        WjjSyncJob wjjSyncJob = AspectUtil.getMethodAnnotation(joinPoint, WjjSyncJob.class);
+        String key = wjjSyncJob.key();
         unLock(key);
         JobExecutionContext jobExecutionContext = (JobExecutionContext) AspectUtil.getMethodArgs(joinPoint)[0];
         jobUtil.addJobLog(Boolean.FALSE, ExceptionUtil.getStackTraceMessage(ex), jobExecutionContext);
