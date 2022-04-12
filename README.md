@@ -48,6 +48,15 @@ create table schedule_job_list
     SJL_REMARK        varchar(255)         null comment '备注',
     SJL_CREATE_TIME   datetime             null
 )
+##初始化任务
+
+INSERT INTO schedule_job_list ( SJL_TASK_NAME, SJL_TASK_GROUP, SJL_CLASS_PATH, SJL_TRIGGER_NAME, SJL_TRIGGER_GROUP, SJL_ENABLE, SJL_EXPRESS, SJL_REMARK, SJL_CREATE_TIME) VALUES ( '5点59分至6点 每隔两秒执行一次 （预热）', 'easyFood', 'com.wjj.worker.foundation.task.MaiCaiJob', 'c9ec9ac4999c46f8b9741f72708b7c6b', 'easyFood', 1, '*/2 59 05 * * ?', null, '2022-04-07 16:50:26');
+INSERT INTO schedule_job_list ( SJL_TASK_NAME, SJL_TASK_GROUP, SJL_CLASS_PATH, SJL_TRIGGER_NAME, SJL_TRIGGER_GROUP, SJL_ENABLE, SJL_EXPRESS, SJL_REMARK, SJL_CREATE_TIME) VALUES ( '6点至7点 每隔一秒执行一次', 'easyFood', 'com.wjj.worker.foundation.task.MaiCaiJob', 'a0fdf3f744af41c2b29eba7a3543aac2', 'easyFood', 1, '* 0-59 06 * * ?', null, '2022-04-08 03:25:45');
+INSERT INTO schedule_job_list ( SJL_TASK_NAME, SJL_TASK_GROUP, SJL_CLASS_PATH, SJL_TRIGGER_NAME, SJL_TRIGGER_GROUP, SJL_ENABLE, SJL_EXPRESS, SJL_REMARK, SJL_CREATE_TIME) VALUES ( '8点半至9点 每隔一秒执行一次', 'easyFood', 'com.wjj.worker.foundation.task.MaiCaiJob', '5a5d254f3a754f6b94ac982c89d5e0af', 'easyFood', 1, '* 30-59 08 * * ?', null, '2022-04-08 03:28:44');
+INSERT INTO schedule_job_list ( SJL_TASK_NAME, SJL_TASK_GROUP, SJL_CLASS_PATH, SJL_TRIGGER_NAME, SJL_TRIGGER_GROUP, SJL_ENABLE, SJL_EXPRESS, SJL_REMARK, SJL_CREATE_TIME) VALUES ( '8点29至8点半 每隔两秒执行一次 （预热）', 'easyFood', 'com.wjj.worker.foundation.task.MaiCaiJob', '718366cae3e943e4b2050e96d4dbcab3', 'easyFood', 1, '*/2 29 08 * * ?', null, '2022-04-08 03:29:11');
+INSERT INTO schedule_job_list ( SJL_TASK_NAME, SJL_TASK_GROUP, SJL_CLASS_PATH, SJL_TRIGGER_NAME, SJL_TRIGGER_GROUP, SJL_ENABLE, SJL_EXPRESS, SJL_REMARK, SJL_CREATE_TIME) VALUES ( '5点27至5点59 每隔二十秒执行一次  （预热）', 'easyFood', 'com.wjj.worker.foundation.task.MaiCaiJob', 'c3f76588b99e493fbf0270b0597f0b66', 'easyFood', 1, '0/20 27-59 05 * * ?', null, '2022-04-08 15:32:28');
+INSERT INTO schedule_job_list ( SJL_TASK_NAME, SJL_TASK_GROUP, SJL_CLASS_PATH, SJL_TRIGGER_NAME, SJL_TRIGGER_GROUP, SJL_ENABLE, SJL_EXPRESS, SJL_REMARK, SJL_CREATE_TIME) VALUES ( '8点至8点29 每隔二十秒执行一次 （预热） ', 'easyFood', 'com.wjj.worker.foundation.task.MaiCaiJob', '540feb861da74581b735b719ef388306', 'easyFood', 1, '0/20 0-29 08 * * ?', null, '2022-04-08 15:34:24');
+
 ```
 ### 日志服务及分布式任务（选择性创建）
 **默认状态下未开启日志及分布式任务，如需请在 task job主入口 中增加注解 @WjjSyncJob**
