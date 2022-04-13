@@ -2,7 +2,7 @@
 
 ​		疫情期间上海一菜难求，手机屏幕点破了仍然拥挤中...
 
-​		无奈之下只能写入此程序解决部分问题，初衷仅时帮助广大群众及自身能填饱肚子
+​		无奈之下只能写入此程序解决部分问题，初衷仅是帮助广大群众及自身能填饱肚子
 <br/>
 **<font color="red">如非紧急情况不要轻易使用给普通人留点机会</font>**
 <br/>
@@ -85,13 +85,14 @@ create table schedule_job_log
 
 ​		安装 jdk1.8 && maven 自行百度配置相对简单
 
-1. ```
+### 方式1
+```
     mvn clean & mvn install
     //stage target中获取 w-easy-food-stage.jar 启动
     nohup java -jar w-easy-food-stage.jar
-    ```
-
-2. 自行通过idea启动
+```
+### 方式二
+自行通过idea启动
 
  ```
     访问
