@@ -51,7 +51,7 @@
     </insert>
 
     <update id="updateJob" parameterType="com.wjj.worker.persistence.dto.QuartzDto">
-        UPDATE schedule_job_list ${jobName}
+        UPDATE schedule_job_list
         <set>
             <if test="cronExpression!=null and cronExpression!=''">
                 SJL_EXPRESS=#{cronExpression},
