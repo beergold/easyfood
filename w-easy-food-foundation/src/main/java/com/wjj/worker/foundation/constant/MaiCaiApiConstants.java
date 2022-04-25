@@ -20,10 +20,10 @@ public class MaiCaiApiConstants {
     /**
      * 获取可用配送时间
      */
-    public final static String RECEIVE_TIME_URL = "https://maicai.api.ddxq.mobi/order/getMultiReserveTime/?station_id={stationId}&city_number=0101&api_version=9.49.0&app_version=2.81.0&isBridge=false&app_client_id=3";
+    public final static String RECEIVE_TIME_URL = "https://maicai.api.ddxq.mobi/order/getMultiReserveTime?station_id={stationId}&city_number=0101&api_version=9.49.0&app_version=2.81.0&isBridge=false&app_client_id=3";
 
     /**
      * 创建订单
      */
-    public final static String ADD_NEW_ORDER = "https://maicai.api.ddxq.mobi/order/addNewOrder/?";
+    public final static String ADD_NEW_ORDER = "https://maicai.api.ddxq.mobi/order/addNewOrder?";
 }
