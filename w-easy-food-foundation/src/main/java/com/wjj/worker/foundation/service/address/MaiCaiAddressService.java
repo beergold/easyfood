@@ -59,7 +59,7 @@ public class MaiCaiAddressService {
                 WjjApiParameter data = new WjjApiParameter();
                 data.put("addressId", e.getString("id"));
                 data.put("stationId", e.getJsonObject("station_info").getString("id"));
-                data.put("cityNumber", e.getString("city_number"));
+                data.put("cityNumber", e.getJsonObject("station_info").getString("city_number"));
                 cacheUtils.setCacheObject(cacheId, data, 72, TimeUnit.HOURS);
                 return data;
             }
